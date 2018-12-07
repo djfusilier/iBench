@@ -1,38 +1,45 @@
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
         }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        dependencies {
+            classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
         }
     }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
-    }
 }
+
+apply plugin: 'net.minecraftforge.gradle.forge'
 
 repositories {
     maven {
-        name 'CB Maven FS'
-        url "http://chickenbones.net/maven/"
+        // location of the maven that hosts JEI files
+        name = "Progwml6 maven"
+        url = "http://dvs1.progwml6.com/files/maven"
+    }
+    maven {
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+        url = "modmaven.k-4u.nl"
     }
 }
 
 
-apply plugin: 'forge'
 
-version = "1.7.10-1.0.11"
+version = "1.0"
 
 group= "com.sapient.ibench" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ibench"
 
+sourceCompatibility = targetCompatibility = "1.8"
+
 minecraft {
-    version = "1.7.10-10.13.2.1230"
-    runDir = "runmc"
+    version = "1.12.2-14.23.5.2775"
+    runDir = "run"
+    mappings = "stable_39"
+    useDepAts = true
 }
 
 dependencies {
@@ -40,38 +47,43 @@ dependencies {
     // or you may define them like so..
     //compile "some.group:artifact:version:classifier"
     //compile "some.group:artifact:version"
-      
+
     // real examples
     //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
+    // the 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
+    //provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+
+    // the deobf configurations:  'deobfCompile' and 'deobfProvided' are the same as the normal compile and provided,
+    // except that these dependencies get remapped to your current MCP mappings
+    //deobfCompile 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+    //deobfProvided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
 
     // for more info...
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
-//    compile name: "InventoryTweaks"   , group: "inventorytweaks", version: "1.59-dev-159", classifier: "invtweaks"
-
-    compile "codechicken:CodeChickenLib:1.7.10-1.1.1.106:dev"
-    compile "codechicken:CodeChickenCore:1.7.10-1.0.4.29:dev"
-    compile "codechicken:NotEnoughItems:1.7.10-1.0.3.73:dev"
+    // compile against the JEI API but do not include it at runtime
+    deobfProvided "mezz.jei:jei_${mc_version}:${jei_version}:api"
+    // at runtime, use the full JEI jar
+    runtime "mezz.jei:jei_${mc_version}:${jei_version}"
 
 }
-
 processResources
 {
-    // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+   // this will ensure that this task is redone when the versions change.
+   inputs.property "version", project.version
+   inputs.property "mcversion", project.minecraft.version
 
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-                
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-        
-    // copy everything else, thats not the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
+   // replace stuff in mcmod.info, nothing else
+   from(sourceSets.main.resources.srcDirs) {
+       include 'mcmod.info'
+
+   // replace version and mcversion
+   expand 'version':project.version, 'mcversion':project.minecraft.version
+     }
+
+   // copy everything else, thats not the mcmod.info
+   from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
-    }
+     }
 }
